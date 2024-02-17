@@ -11,8 +11,36 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import generics, mixins
+from rest_framework import viewsets
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticated 
+from rest_framework.pagination import PageNumberPagination ,LimitOffsetPagination
+from django.contrib.auth import get_user_model
 from .models import Todo
-from .serialaizer import TodoSerializer
+from .serialaizer import TodoSerializer,UserSerializer
+#endregion
+
+#?--------------------------------------------------+
+#?               Pagination Class                   |
+#?               For Costomise use                  |
+#?--------------------------------------------------+
+#region
+
+# کمک به عملکرد پروژه 
+# زمانی که میخواهی م اطلاعات را واکشی بکنیم
+# مثلا اگر 10 کاربر بخواهند اطلاعات دیتابیس  بخض محصولات را ببیند
+# و جدول محصولات شامل 1000 کالا باشد
+# باید در ثانیه 10*1000 اطلاعات واکشی شود که بسیار زیاد است
+# وممکن است سایت کاملا کرش کند
+
+# this class Costomise Pagination and can use in each classApiView
+# Foe Example is use in TodosListGenericsApiView
+class CustomPagination(PageNumberPagination):
+    page_size = 3
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+    
+
 #endregion
 
 #?--------------------------------------------------+
@@ -81,6 +109,7 @@ def todo_detail_view(request : Request,todo_id : int):
 #region
 
 #! http://127.0.0.1:8000/all/cbv
+#! http://127.0.0.1:8000/all/cbv/<int:todo_id>
 
 class TodosListApiView(APIView):
     def get(self,request:Request):
@@ -106,12 +135,12 @@ class TodosDetailApiView(APIView):
             return Response(None , status.HTTP_404_NOT_FOUND)
         
         
-    def get(self,request:Request,todo_id:int):
+    def get(self, request:Request, todo_id:int):
         todo = self.get_object(todo_id)       
         serializedr = TodoSerializer(todo)
         return Response(serializedr.data , status.HTTP_200_OK)
     
-    def post(self,request:Request,todo_id:int):
+    def post(self, request:Request, todo_id:int):
         todo = self.get_object(todo_id)
         
         # We must pass 2 args -> instance & data - > in this :
@@ -123,7 +152,7 @@ class TodosDetailApiView(APIView):
         return Response(None, status.HTTP_400_BAD_REQUEST)
     
     
-    def delete(self,request:Request,todo_id:int):
+    def delete(self, request:Request, todo_id:int):
         todo = self.get_object(todo_id)
         
         todo.delete()
@@ -136,6 +165,9 @@ class TodosDetailApiView(APIView):
 #?                      Mixins                      |
 #?--------------------------------------------------+
 #region
+
+#! http://127.0.0.1:8000/all/mixins
+#! http://127.0.0.1:8000/all/mixins/<int:pk>
 
 # !Mixin Usage
 # CreateModelMixin	    Create a model instance
@@ -156,7 +188,10 @@ class TodosDetailApiView(APIView):
 # RetrieveUpdateDestroyAPIView	read-update-delete for single instance	get, put, patch, delete	  RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 #----------------------------------------
 
-class TodosListMixinApiView( mixins.ListModelMixin , mixins.CreateModelMixin, generics.GenericAPIView):
+class TodosListMixinApiView( mixins.ListModelMixin ,
+                            mixins.CreateModelMixin,
+                            generics.GenericAPIView):
+    
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
     
@@ -171,7 +206,11 @@ class TodosListMixinApiView( mixins.ListModelMixin , mixins.CreateModelMixin, ge
 # DestroyModelMixin  -> for delete
 # GenericAPIView     -> for APIView
 
-class TodosDetailMixinApiView( mixins.RetrieveModelMixin , mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+class TodosDetailMixinApiView( mixins.RetrieveModelMixin ,
+                                mixins.UpdateModelMixin,
+                                mixins.DestroyModelMixin,
+                                generics.GenericAPIView):
+    
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
     
@@ -186,21 +225,88 @@ class TodosDetailMixinApiView( mixins.RetrieveModelMixin , mixins.UpdateModelMix
 
 #endregion
 
-
 #?--------------------------------------------------+
 #?                    Generics                      |
 #?--------------------------------------------------+
 #region
 
+#! http://127.0.0.1:8000/all/generics
+#! http://127.0.0.1:8000/all/generics/<int:pk>
+
 class TodosListGenericsApiView(generics.ListCreateAPIView):
-    queryset = Todo.objects.order_by('priority').all()
+    queryset         = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
+    pagination_class = CustomPagination
     # No needs more fuctions
     
 # RetrieveUpdateDestroyAPIView -> For get & update & delete
 class TodosDetailGenericsApiView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
+    
     # No needs more fuctions
+
+#endregion
+
+#?--------------------------------------------------+
+#?                    viewsets                      |
+#?--------------------------------------------------+
+#region 
+
+# We can reate just one class 
+#! http://127.0.0.1:8000/all/viewsets/
+#! http://127.0.0.1:8000/all/viewsets/<int:pk>
+
+
+# add Routers in urls.py
+class TodosViewSetApiView(viewsets.ModelViewSet):
+    queryset         = Todo.objects.order_by('priority').all()
+    serializer_class = TodoSerializer
+    pagination_class = CustomPagination
+
+#endregion
+
+#?--------------------------------------------------+
+#?                 Nested Serializer                |
+#?--------------------------------------------------+
+#region 
+
+# وقتی بخواهیم چند جدول را که با هم ارتباط دارند به هم دیگ متصل کنیم 
+# For related 2 or more table to each others 
+#?----------------------+
+#?          USER        |
+#?----------------------+
+
+# 1- Add user to columns off Todos Models in Models.py
+# 2- Migrate 
+# 3- Add UserSerializer  in Serializer.py
+# 4- Add Address in urls.py
+# 5- Create UsersGenericsApiView
+#! http://127.0.0.1:8000/all/users 
+
+User = get_user_model()
+class UsersGenericsApiView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    # No needs more fuctions
+
+#endregion
+
+
+#?--------------------------------------------------+
+#?        Authentications Class By Generics         |
+#?--------------------------------------------------+
+#region
+
+# In This class Need ~Authentications~ for Access To API
+#! http://127.0.0.1:8000/all/genericsByAuth/
+
+class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
+    queryset         = Todo.objects.order_by('priority').all()
+    serializer_class = TodoSerializer
+    pagination_class = CustomPagination
+    authentication_classes  = [BasicAuthentication]
+    permission_classes      = [IsAuthenticated]
 
 #endregion

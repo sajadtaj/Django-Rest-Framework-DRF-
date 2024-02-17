@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import path,include
+from rest_framework.routers import DefaultRouter
 from .import views
 
-
+router = DefaultRouter()
+router.register('' , views.TodosViewSetApiView)  
+#add in urlpatterns -> path('viewsets/', include(router.urls))
 
 urlpatterns = [
     path('',views.all_todos),
@@ -12,4 +15,8 @@ urlpatterns = [
     path('mixins/<int:pk>',views.TodosDetailMixinApiView.as_view()),       # for class base view add -> as_view()
     path('generics/',views.TodosListGenericsApiView.as_view()),            # for class base view add -> as_view()
     path('generics/<int:pk>',views.TodosDetailGenericsApiView.as_view()),  # for class base view add -> as_view()
+    path('viewsets/', include(router.urls))                             ,  # For ViewSet
+    path('users/',views.UsersGenericsApiView.as_view()),  # for class base view add -> as_view()
+    path('genericsByAuth/',views.TodosAuthListGenericsApiView.as_view()),  # need Authentications
+
 ]
