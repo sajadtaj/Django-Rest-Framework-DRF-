@@ -14,12 +14,12 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import generics, mixins
 from rest_framework import viewsets
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework.pagination import PageNumberPagination ,LimitOffsetPagination
 from django.contrib.auth import get_user_model
 from .models import Todo
 from .serialaizer import TodoSerializer,UserSerializer
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 #endregion
 
 #?--------------------------------------------------+
@@ -310,7 +310,6 @@ class UsersGenericsApiView(generics.ListAPIView):
 # IN global setting :
 # 
 # REST_FRAMEWORK = { 
-#     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
 #     'DEFAULT_AUTHENTICATION_CLASSES': [
 #         'rest_framework.authentication.BasicAuthentication',
 #     ],
@@ -325,21 +324,56 @@ class UsersGenericsApiView(generics.ListAPIView):
 #
 #
 #! http://127.0.0.1:8000/all/genericsByAuth/
+# این تابع را غیر فعال کردم چون تداخل میکند با بیسیک
+#? class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
+#?    queryset         = Todo.objects.order_by('priority').all()
+#?    serializer_class = TodoSerializer
+#?    pagination_class = CustomPagination               # For paginations
+    
+#?     authentication_classes  = [BasicAuthentication]   # For Basic Authentication
+#?     permission_classes      = [IsAuthenticated]       # For Authentication    
 
+#endregion
+#!---------------------------+
+#!  Tokecn Authentications   |
+#!---------------------------+
+#  توکن و رمز و پسور در دیتابیس ذخیره میشود و نیاز نیست هر بار رمز و پسورد را بزنیم.
+# 1-  Add install apps in stting -> 'rest_framework.authtoken'
+# 2-  IN global setting :
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.TokenAuthentication',
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ] 
+# 
+#3-  Execute Migrate
+#     In Admin Pannel Can See toke table
+#4-  Create URl in project Url for Get Username & Password from users (No Needs View Function)
+#5- for use in this method better use POSTMAN
 class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
     queryset         = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
     pagination_class = CustomPagination               # For paginations
     
-    authentication_classes  = [BasicAuthentication]   # For Basic Authentication
-    permission_classes      = [IsAuthenticated]       # For Authentication    
+    # For token Authentication No Needs below config
+    # authentication_classes  = [BasicAuthentication]   # For Basic Authentication
+    # permission_classes      = [IsAuthenticated]       # For Authentication    
 
-
-#!---------------------------+
-#!  Tokecn Authentications   |
-#!---------------------------+
-
-
-
-
+#6- Send Json to -> http://127.0.0.1:8000/auth-token/
+# Use POSTMAN _> POST|row|json
+    {
+        "username": "sajad",
+        "password": "12"
+    }
+#Note) Above user before registered
+#7- After Send username and pass as json to  -> http://127.0.0.1:8000/auth-token/ ||
+# Got Thos Token :
+{
+    "token": "08a2dc3bbf4a625637bdd89d3f8408a798aae990"
+}
+#8- In postman Set :
+#     URL :http://127.0.0.1:8000/all/generics
+#     Get -> Headers -> Authentication( Tick): 
+#     In value: Token 08a2dc3bbf4a625637bdd89d3f8408a798aae990
+#     Click On Send
 #endregion
