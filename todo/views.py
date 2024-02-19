@@ -1,3 +1,5 @@
+# Note:
+# Details Class Dosnt Work By Authentication config
 
 #?--------------------------------------------------+
 #?                   Call APackages                 |
@@ -273,14 +275,15 @@ class TodosViewSetApiView(viewsets.ModelViewSet):
 
 # وقتی بخواهیم چند جدول را که با هم ارتباط دارند به هم دیگ متصل کنیم 
 # For related 2 or more table to each others 
-#?----------------------+
-#?          USER        |
-#?----------------------+
+#!----------------------+
+#!          USER        |
+#!----------------------+
 
 # 1- Add user to columns off Todos Models in Models.py
 # 2- Migrate 
 # 3- Add UserSerializer  in Serializer.py
 # 4- Add Address in urls.py
+# 5- Create instance 
 # 5- Create UsersGenericsApiView
 #! http://127.0.0.1:8000/all/users 
 
@@ -297,16 +300,46 @@ class UsersGenericsApiView(generics.ListAPIView):
 #?--------------------------------------------------+
 #?        Authentications Class By Generics         |
 #?--------------------------------------------------+
+#!---------------------------+
+#!  Basic Authentications    |
+#!---------------------------+
 #region
 
 # In This class Need ~Authentications~ for Access To API
+# -------------------------------------------------------
+# IN global setting :
+# 
+# REST_FRAMEWORK = { 
+#     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework.authentication.BasicAuthentication',
+#     ],
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ] }
+# --------------------------------------------------------
+#   for one class add :
+# 
+#   1- authentication_classes
+#   2- permission_classes
+#
+#
 #! http://127.0.0.1:8000/all/genericsByAuth/
 
 class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
     queryset         = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
-    pagination_class = CustomPagination
-    authentication_classes  = [BasicAuthentication]
-    permission_classes      = [IsAuthenticated]
+    pagination_class = CustomPagination               # For paginations
+    
+    authentication_classes  = [BasicAuthentication]   # For Basic Authentication
+    permission_classes      = [IsAuthenticated]       # For Authentication    
+
+
+#!---------------------------+
+#!  Tokecn Authentications   |
+#!---------------------------+
+
+
+
 
 #endregion
