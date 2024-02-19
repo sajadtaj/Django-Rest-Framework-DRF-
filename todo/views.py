@@ -296,7 +296,6 @@ class UsersGenericsApiView(generics.ListAPIView):
 
 #endregion
 
-
 #?--------------------------------------------------+
 #?        Authentications Class By Generics         |
 #?--------------------------------------------------+
@@ -334,9 +333,11 @@ class UsersGenericsApiView(generics.ListAPIView):
 #?     permission_classes      = [IsAuthenticated]       # For Authentication    
 
 #endregion
+
 #!---------------------------+
 #!  Tokecn Authentications   |
 #!---------------------------+
+#region
 #  توکن و رمز و پسور در دیتابیس ذخیره میشود و نیاز نیست هر بار رمز و پسورد را بزنیم.
 # 1-  Add install apps in stting -> 'rest_framework.authtoken'
 # 2-  IN global setting :
@@ -350,6 +351,7 @@ class UsersGenericsApiView(generics.ListAPIView):
 #     In Admin Pannel Can See toke table
 #4-  Create URl in project Url for Get Username & Password from users (No Needs View Function)
 #5- for use in this method better use POSTMAN
+
 class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
     queryset         = Todo.objects.order_by('priority').all()
     serializer_class = TodoSerializer
@@ -371,9 +373,108 @@ class TodosAuthListGenericsApiView(generics.ListCreateAPIView):
 {
     "token": "08a2dc3bbf4a625637bdd89d3f8408a798aae990"
 }
-#8- In postman Set :
-#     URL :http://127.0.0.1:8000/all/generics
+#8- Go to For test (POSTMAN) #! http://127.0.0.1:8000/all/generics 
 #     Get -> Headers -> Authentication( Tick): 
 #     In value: Token 08a2dc3bbf4a625637bdd89d3f8408a798aae990
+#     Click On Send
+#endregion
+
+# کاربر یکبار بوسیله توکن احراز هویت می شود
+# و توکن کاربر در دیتابیس ذخیره میشود تا در دفعات بعدی
+# از همان توکن برای احراز کاربر استفاده گردد
+# لذا هر بار کاربر درخواست بدهد ابتدا نیاز است 
+# توکن وی از دیتابیس واکشی شود 
+# یعنی اگر هزاران کاربر بخواهند همزمان به سایت درخواست بدهند 
+# سایت باید در لحظه از طریق دیتابیس خود
+# که توکن ها را نگهداری کرده صلاحیت هزاران کاربر را تایید کند
+# این مورد مشکل ساز است لذا بهترا ست از متد زیر استفاده گردد
+
+#!---------------------------+
+#!   Json Web Token Auth     |
+#!          (JWT)            |
+#!---------------------------+
+#region
+# More INFO-> https://django-rest-framework-simplejwt.readthedocs.io/en/latest/index.html
+#A JSON Web Token authentication plugin for the Django REST Framework.
+#1- Add plugin to DRF -> pip install djangorestframework-simplejwt
+#2- Add Global Setting
+#      REST_FRAMEWORK = {
+#       ...
+#       'DEFAULT_AUTHENTICATION_CLASSES': (
+#         ...
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#      )
+#       ...
+#      }
+#3- Add instalee App: 
+#    INSTALLED_APPS = [
+#        ...
+#        'rest_framework_simplejwt',
+#        ...
+#    ]
+#4- Add URL in poject :
+#        from rest_framework_simplejwt.views import (
+#            TokenObtainPairView,
+#            TokenRefreshView,
+#        )
+#       
+#        urlpatterns = [
+#            ...
+#            path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+#            path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+#            ...
+#        ]
+#5- send username and password By POSTMAN: URL -> #! http://127.0.0.1:8000/api/token/
+# POST-> Body-> row -> Json:
+#      {
+#          "username": "sajad",
+#          "password": "12",
+#      }
+# Get 2 element:
+#      {
+#          "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODQzMDU3MCwiaWF0IjoxNzA4MzQ0MTcwLCJqdGkiOiIxZjIxYmM5MGU0ZDY0N2Y2OTk2ZmNkZGEwNzY3NDRhNiIsInVzZXJfaWQiOjF9.02_nXrDtMw_Hkg1VFJlDK0Tlku3o00IAX3TvSyjXyto",
+#          "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MzQ0NDcwLCJpYXQiOjE3MDgzNDQxNzAsImp0aSI6IjEyZDdlMmQ5MWZlNDRiYjg4MTAxYmI2YTFjYTk3MjhiIiwidXNlcl9pZCI6MX0.-AK3Oy2bghgQYLaJMQsLMPiJtGQvg_8hTe2msj_G8nQ"
+#      }
+#6- Go to For test (POSTMAN) #! http://127.0.0.1:8000/all/generics 
+#     URL :http://127.0.0.1:8000/all/generics
+#     Get -> Headers -> Authentication( Tick): 
+#     In value: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MzQ0NDcwLCJpYXQiOjE3MDgzNDQxNzAsImp0aSI6IjEyZDdlMmQ5MWZlNDRiYjg4MTAxYmI2YTFjYTk3MjhiIiwidXNlcl9pZCI6MX0.-AK3Oy2bghgQYLaJMQsLMPiJtGQvg_8hTe2msj_G8nQ
+#     Click On Send
+#* این توکن دیگر درون دیتابیس ذخیر نمی گردد
+# بعد از مدتی توکن اصلی اکسپایر می شود
+# و نیاز است مجدد توکن بگیریم
+# برای اینکه نیاز نباشد در هربار تمدید توکن از اول نام و پسور را وارد کنیم
+# ازمفهومی به نام رفرش توکن استفاده میکنیم
+# توجه داشته باشید که هم رفرش توکن هم اکسس توکن هردو تاریخ انقضا دارند
+# استفاده از رفرش توکن موجب می شود 
+# اکسس توکن به میزات طول عمرش مجدد تمدید شود
+# اما اگر رفرش توکن منقضی شد باید 
+# دوباره نام و پسورد را بزنیم
+
+#7-  این تنظیمات را باید به تنظیمات کلی جنگو اضافه کنیم
+#
+#      SIMPLE_JWT = {
+#          "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # هر 5 دقیقه منقضی مشود
+#               
+#          "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # بعد از یک روز منقضی می شود
+#      }
+#8-  When access Token Expire
+#9- Send Refresh token By post man
+#     POST -> #! http://127.0.0.1:8000/api/token/refresh/
+#     Body -> raw -> Json :
+#             {
+#                 "refresh":  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwODQzMDU3MCwiaWF0IjoxNzA4MzQ0MTcwLCJqdGkiOiIxZjIxYmM5MGU0ZDY0N2Y2OTk2ZmNkZGEwNzY3NDRhNiIsInVzZXJfaWQiOjF9.02_nXrDtMw_Hkg1VFJlDK0Tlku3o00IAX3TvSyjXyto"
+#             }
+#     Send
+#
+#10-  After Send Reffres Token We get Access Token Again:
+#      {
+#          "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MzQ0NDcwLCJpYXQiOjE3MDgzNDQxNzAsImp0aSI6IjEyZDdlMmQ5MWZlNDRiYjg4MTAxYmI2YTFjYTk3MjhiIiwidXNlcl9pZCI6MX0.-AK3Oy2bghgQYLaJMQsLMPiJtGQvg_8hTe2msj_G8nQ"
+#      }
+#
+#6- Go to For test New Access Token After Expire old token (POSTMAN) #! http://127.0.0.1:8000/all/generics 
+#     URL :http://127.0.0.1:8000/all/generics
+#     Get -> Headers -> Authentication( Tick): 
+#     In value: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA4MzQ0NDcwLCJpYXQiOjE3MDgzNDQxNzAsImp0aSI6IjEyZDdlMmQ5MWZlNDRiYjg4MTAxYmI2YTFjYTk3MjhiIiwidXNlcl9pZCI6MX0.-AK3Oy2bghgQYLaJMQsLMPiJtGQvg_8hTe2msj_G8nQ
 #     Click On Send
 #endregion

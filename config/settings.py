@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'todo',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 
 ]
 
@@ -133,10 +135,19 @@ REST_FRAMEWORK = {
     
     
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',          # For Basic Auth
+        # 'rest_framework.authentication.TokenAuthentication',          # For Token Auth
+        'rest_framework_simplejwt.authentication.JWTAuthentication',    # For JWT
 
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
+}
+
+# More INFO -> https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # هر 5 دقیقه منقضی مشود
+        
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # بعد از یک روز منقضی می شود
 }
