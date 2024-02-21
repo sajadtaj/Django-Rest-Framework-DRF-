@@ -16,7 +16,7 @@ urlpatterns = [
     path('generics/',views.TodosListGenericsApiView.as_view()),            # for class base view add -> as_view()
     path('generics/<int:pk>',views.TodosDetailGenericsApiView.as_view()),  # for class base view add -> as_view()
     path('viewsets/', include(router.urls))                             ,  # For ViewSet
-    path('users/',views.UsersGenericsApiView.as_view()),  # for class base view add -> as_view()
+    path('users/',views.UsersGenericsApiView.as_view()),                   # for class base view add -> as_view()
     path('genericsByAuth/',views.TodosAuthListGenericsApiView.as_view()),  # need Authentications
 
 ]

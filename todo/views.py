@@ -172,11 +172,11 @@ class TodosDetailApiView(APIView):
 #! http://127.0.0.1:8000/all/mixins/<int:pk>
 
 # !Mixin Usage
-# CreateModelMixin	    Create a model instance
-# ListModelMixin	    List a queryset
-# RetrieveModelMixin	Retrieve a model instance
-# UpdateModelMixin	    Update a model instance
-# DestroyModelMixin	    Delete a model instance
+# CreateModelMixin	    Create    a model instance
+# ListModelMixin	    List      a queryset
+# RetrieveModelMixin	Retrieve  a model instance
+# UpdateModelMixin	    Update    a model instance
+# DestroyModelMixin	    Delete    a model instance
 # #----------------------------------------
 #! Class	                    Usage	                                Method handler	          Extends mixin
 # CreateAPIView	                create-only	                            post	                  CreateModelMixin
