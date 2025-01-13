@@ -53,7 +53,7 @@ from rest_framework.authentication import BasicAuthentication, TokenAuthenticati
 ```Python
 #views
 @api_view(['GET','POST'])
-defall_todos(requests:Request):
+default_todos(requests:Request):
     if requests.method =='GET' :
         todos=Todo.objects.order_by('priority').all()
 
@@ -117,7 +117,7 @@ urlpatterns = [
 # in app views.py
 
 @api_view(['GET','PUT','DELETE'])
-deftodo_detail_view(request : Request,todo_id : int):
+def todo_detail_view(request : Request,todo_id : int):
 
     try:
         todo=Todo.objects.get(pk=todo_id)
